@@ -219,7 +219,7 @@ func match(pattern, s string) (bool, error) {
 }
 
 func selectSubprotocol(r *http.Request, subprotocols []string) string {
-	cps := headerTokens(r.Header, "Sec-WebSocket-Protocol")
+	cps := headerTokensExt(r.Header, "Sec-WebSocket-Protocol", false)
 	for _, sp := range subprotocols {
 		for _, cp := range cps {
 			if strings.EqualFold(sp, cp) {
@@ -349,12 +349,18 @@ func websocketExtensions(h http.Header) []websocketExtension {
 }
 
 func headerTokens(h http.Header, key string) []string {
+	return headerTokensExt(h, key, true)
+}
+
+func headerTokensExt(h http.Header, key string, lower bool) []string {
 	key = textproto.CanonicalMIMEHeaderKey(key)
 	var tokens []string
 	for _, v := range h[key] {
 		v = strings.TrimSpace(v)
 		for _, t := range strings.Split(v, ",") {
-			t = strings.ToLower(t)
+			if lower {
+				t = strings.ToLower(t)
+			}
 			t = strings.TrimSpace(t)
 			tokens = append(tokens, t)
 		}
